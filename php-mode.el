@@ -510,217 +510,104 @@ This is was done due to the problem reported here:
     map)
   "Keymap for `php-mode'")
 
-;; Boilerplate from other `cc-mode' derived modes. See
-;; http://cc-mode.sourceforge.net/derived-mode-ex.el for details on how this all
-;; fits together.
+;; `cc-mode' definitions. See "cc-langs" for documentation
 (eval-and-compile
   (c-add-language 'php-mode 'java-mode))
 
-;; (c-lang-defconst c-mode-menu)
-;; (c-lang-defconst c-make-mode-syntax-table)
-;; (c-lang-defconst c-mode-syntax-table)
-;; (c-lang-defconst c++-make-template-syntax-table)
-;; (c-lang-defconst c-no-parens-syntax-table)
-;; (c-lang-defconst c-identifier-syntax-modifications)
-;; (c-lang-defconst c-get-state-before-change-functions)
-;; (c-lang-defconst c-before-font-lock-functions)
-;; (c-lang-defconst c-before-context-fontification-functions)
-;; (c-lang-defconst c-at-vsemi-p-fn)
-;; (c-lang-defconst c-vsemi-status-unknown-p-fn)
-;; (c-lang-defconst c-has-bitfields)
-;; (c-lang-defconst c-symbol-start)
-;; (c-lang-defconst c-symbol-chars)
-;; (c-lang-defconst c-symbol-key-depth)
-;; (c-lang-defconst c-nonsymbol-chars)
-;; (c-lang-defconst c-identifier-ops)
-;; (c-lang-defconst c-opt-identifier-concat-key-depth)
-;; (c-lang-defconst c-after-id-concat-ops)
-;; (c-lang-defconst c-identifier-start)
-;; (c-lang-defconst c-identifier-last-sym-match)
-;; (c-lang-defconst c-string-escaped-newlines)
-;; (c-lang-defconst c-multiline-string-start-char)
-;; (c-lang-defconst c-opt-cpp-symbol)
-;; (c-lang-defconst c-opt-cpp-prefix)
-;; (c-lang-defconst c-anchored-cpp-prefix)
-;; (c-lang-defconst c-opt-cpp-start)
-;; (c-lang-defconst c-cpp-message-directives)
-;; (c-lang-defconst c-cpp-include-directives)
-;; (c-lang-defconst c-opt-cpp-macro-define)
-;; (c-lang-defconst c-opt-cpp-macro-define-start)
-;; (c-lang-defconst c-opt-cpp-macro-define-id)
-;; (c-lang-defconst c-cpp-expr-directives)
-;; (c-lang-defconst c-cpp-expr-intro-re)
-;; (c-lang-defconst c-cpp-expr-functions)
-;; (c-lang-defconst c-assignment-operators)
+(c-lang-defconst c-mode-menu
+  php (append '(["Complete function name" php-complete-function t]
+                ["Browse manual" php-browse-manual t]
+                ["Search documentation" php-search-documentation t])
+              (c-lang-const c-mode-menu)))
+
+(c-lang-defconst c-identifier-ops
+  php '((prefix "\\")
+        (left-assoc "::")
+        (prefix "::")))
+
+(c-lang-defconst c-after-id-concat-ops
+  php nil)
+
+(c-lang-defconst c-string-escaped-newlines
+  php t)
 
 (c-lang-defconst c-assignment-operators
-  ;; falls back to java, so don't need to specify the language
-  php (delete ">>>=" (c-lang-const c-assignment-operators)))
+  ;; falls back to java, so no need to specify the language
+  php (append (remove ">>>=" (c-lang-const c-assignment-operators))
+              '(".=")))
 
+;; Some of the operators will need to be modified, since Java has angle brackets
+;; and lacks the -> operator
+;;
 ;; (c-lang-defconst c-operators)
-;; (c-lang-defconst c-operator-list)
-;; (c-lang-defconst c-overloadable-operators)
-;; (c-lang-defconst c-overloadable-operators-regexp)
-;; (c-lang-defconst c-opt-op-identifier-prefix)
-;; (c-lang-defconst c-other-op-syntax-tokens)
-;; (c-lang-defconst c-all-op-syntax-tokens)
-;; (c-lang-defconst c-nonsymbol-token-char-list)
-;; (c-lang-defconst c-nonsymbol-token-regexp)
-;; (c-lang-defconst c-<-op-cont-regexp)
-;; (c-lang-defconst c->-op-cont-regexp)
-;; (c-lang-defconst c-stmt-delim-chars)
-;; (c-lang-defconst c-stmt-delim-chars-with-comma)
-;; (c-lang-defconst c-simple-ws)
-;; (c-lang-defconst c-simple-ws-depth)
-;; (c-lang-defconst c-line-comment-starter)
-;; (c-lang-defconst c-block-comment-starter)
-;; (c-lang-defconst c-block-comment-ender)
-;; (c-lang-defconst c-comment-start-regexp)
-;; (c-lang-defconst c-block-comment-start-regexp)
-;; (c-lang-defconst c-line-comment-start-regexp)
-;; (c-lang-defconst c-literal-start-regexp)
-;; (c-lang-defconst c-doc-comment-start-regexp)
-;; (c-lang-defconst comment-start)
-;; (c-lang-defconst comment-end)
-;; (c-lang-defconst comment-start-skip)
-;; (c-lang-defconst c-syntactic-ws-start)
-;; (c-lang-defconst c-syntactic-ws-end)
-;; (c-lang-defconst c-unterminated-block-comment-regexp)
-;; (c-lang-defconst c-block-comment-regexp)
-;; (c-lang-defconst c-nonwhite-syntactic-ws)
-;; (c-lang-defconst c-syntactic-ws)
-;; (c-lang-defconst c-syntactic-ws-depth)
-;; (c-lang-defconst c-nonempty-syntactic-ws)
-;; (c-lang-defconst c-nonempty-syntactic-ws-depth)
-;; (c-lang-defconst c-single-line-syntactic-ws)
-;; (c-lang-defconst c-single-line-syntactic-ws-depth)
-;; (c-lang-defconst c-syntactic-eol)
-;; (c-lang-defconst beginning-of-defun-function)
-;; (c-lang-defconst end-of-defun-function)
-;; (c-lang-defconst c-paragraph-start)
-;; (c-lang-defconst c-paragraph-separate)
+
+(c-lang-defconst beginning-of-defun-function
+  php 'php-beginning-of-defun)
+
+(c-lang-defconst end-of-defun-function
+  php 'php-end-of-defun)
 
 (c-lang-defconst c-primitive-type-kwds
   php '("int" "integer" "bool" "boolean" "float" "double" "real"
         "string" "array" "object" "unset"))
-
-;; (c-lang-defconst c-primitive-type-prefix-kwds)
-;; (c-lang-defconst c-typedef-kwds)
-;; (c-lang-defconst c-type-prefix-kwds)
-;; (c-lang-defconst c-type-modifier-kwds)
-;; (c-lang-defconst c-type-start-kwds)
 
 (c-lang-defconst c-class-decl-kwds
   "Keywords introducing declarations where the following block (if any)
 contains another declaration level that should be considered a class."
   php '("class" "trait" "interface"))
 
-;; (c-lang-defconst c-brace-list-decl-kwds)
-;; (c-lang-defconst c-other-block-decl-kwds)
-;; (c-lang-defconst c-typedef-decl-kwds)
-;; (c-lang-defconst c-typeless-decl-kwds)
+(c-lang-defconst c-brace-list-decl-kwds
+  php nil)
 
 ;; Function definitions can begin with "function"
 (c-lang-defconst c-modifier-kwds
   php '("function" "abstract" "const" "final" "native" "private" "protected" "public"
          "static" "strictfp" "synchronized" "transient" "volatile"))
 
-;; (c-lang-defconst c-other-decl-kwds)
-;; (c-lang-defconst c-decl-start-kwds)
-;; (c-lang-defconst c-decl-hangon-kwds)
-;; (c-lang-defconst c-decl-hangon-key)
-;; (c-lang-defconst c-prefix-spec-kwds)
-;; (c-lang-defconst c-prefix-spec-kwds-re)
-;; (c-lang-defconst c-specifier-key)
-;; (c-lang-defconst c-postfix-spec-kwds)
-;; (c-lang-defconst c-not-decl-init-keywords)
-;; (c-lang-defconst c-not-primitive-type-keywords)
-;; (c-lang-defconst c-not-primitive-type-keywords-regexp)
+;; Doesn't java have this? Apparently not, as cc-langs does not set this for
+;; `java-mode'
+;;
 ;; (c-lang-defconst c-protection-kwds)
-;; (c-lang-defconst c-block-decls-with-vars)
-;; (c-lang-defconst c-opt-block-decls-with-vars-key)
-;; (c-lang-defconst c-postfix-decl-spec-kwds)
-;; (c-lang-defconst c-nonsymbol-sexp-kwds)
-;; (c-lang-defconst c-type-list-kwds)
-;; (c-lang-defconst c-ref-list-kwds)
-;; (c-lang-defconst c-colon-type-list-kwds)
-;; (c-lang-defconst c-colon-type-list-re)
-;; (c-lang-defconst c-paren-nontype-kwds)
-;; (c-lang-defconst c-paren-type-kwds)
-;; (c-lang-defconst c-paren-any-kwds)
-;; (c-lang-defconst c-brace-id-list-kwds)
-;; (c-lang-defconst c-block-stmt-1-kwds)
-;; (c-lang-defconst c-block-stmt-1-key)
+
+(c-lang-defconst c-postfix-decl-spec-kwds
+  php (remove "throws" (c-lang-const c-postfix-decl-spec-kwds)))
+
+(c-lang-defconst c-type-list-kwds
+  php (remove "import" (c-lang-const c-type-list-kwds)))
+
+(c-lang-defconst c-ref-list-kwds
+  php nil)
 
 (c-lang-defconst c-block-stmt-2-kwds
-  "Statement keywords followed by a paren sexp and then by a substatement.
-\"function\" appears here for anonymous functions."
-  php '("function" "for" "if" "switch" "while"))
+  php (append '("elseif" "foreach" "declare")
+              (remove "synchronized" (c-lang-const c-block-stmt-2-kwds))))
 
-;; (c-lang-defconst c-block-stmt-kwds)
-;; (c-lang-defconst c-opt-block-stmt-key)
-;; (c-lang-defconst c-simple-stmt-kwds)
-;; (c-lang-defconst c-simple-stmt-key)
-;; (c-lang-defconst c-paren-stmt-kwds)
-;; (c-lang-defconst c-paren-stmt-key)
-;; (c-lang-defconst c-asm-stmt-kwds)
-;; (c-lang-defconst c-opt-asm-stmt-key)
-;; (c-lang-defconst c-case-kwds)
-;; (c-lang-defconst c-case-kwds-regexp)
-;; (c-lang-defconst c-label-kwds)
-;; (c-lang-defconst c-label-kwds-regexp)
-;; (c-lang-defconst c-before-label-kwds)
-;; (c-lang-defconst c-constant-kwds)
-;; (c-lang-defconst c-primary-expr-kwds)
-;; (c-lang-defconst c-expr-kwds)
-;; (c-lang-defconst c-lambda-kwds)
-;; (c-lang-defconst c-inexpr-block-kwds)
-;; (c-lang-defconst c-inexpr-class-kwds)
-;; (c-lang-defconst c-inexpr-brace-list-kwds)
-;; (c-lang-defconst c-opt-inexpr-brace-list-key)
-;; (c-lang-defconst c-decl-block-key)
-;; (c-lang-defconst c-bitfield-kwds)
-;; (c-lang-defconst c-opt-bitfield-key)
-;; (c-lang-defconst c-other-kwds)
-;; (c-lang-defconst c-keywords)
-;; (c-lang-defconst-eval-immediately)
-;; (c-lang-defconst c-keywords-regexp)
-;; (c-lang-defconst c-keyword-member-alist)
-;; (c-lang-defconst-eval-immediately)
-;; (c-lang-defconst c-regular-keywords-regexp)
-;; (c-lang-defconst c-primary-expr-regexp)
-;; (c-lang-defconst c-decl-prefix-re)
-;; (c-lang-defconst c-decl-start-re)
-;; (c-lang-defconst c-decl-prefix-or-start-re)
-;; (c-lang-defconst c-cast-parens)
-;; (c-lang-defconst c-block-prefix-disallowed-chars)
-;; (c-lang-defconst c-block-prefix-charset)
-;; (c-lang-defconst c-type-decl-prefix-key)
-;; (c-lang-defconst c-type-decl-suffix-key)
-;; (c-lang-defconst c-after-suffixed-type-decl-key)
-;; (c-lang-defconst c-after-suffixed-type-maybe-decl-key)
-;; (c-lang-defconst c-opt-type-concat-key)
-;; (c-lang-defconst c-opt-type-suffix-key)
-;; (c-lang-defconst c-special-brace-lists)
-;; (c-lang-defconst c-recognize-knr-p)
-;; (c-lang-defconst c-recognize-typeless-decls)
+(c-lang-defconst c-simple-stmt-kwds
+  php (append '("include" "include_once" "require" "require_once" "echo")
+              (c-lang-const c-simple-stmt-kwds)))
+
+(c-lang-defconst c-constant-kwds
+  php '("TRUE" "FALSE" "NULL"))
+
+(c-lang-defconst c-lambda-kwds
+  php '("function"))
+
+
+(c-lang-defconst c-type-decl-suffix-key
+  php nil)
+
+(c-lang-defconst c-opt-type-suffix-key
+  php nil)
+
+(c-lang-defconst c-recognize-typeless-decls
+  php t)
 
 ;; PHP does not have <> templates/generics
 (c-lang-defconst c-recognize-<>-arglists
   php nil)
 
-;; (c-lang-defconst c-enums-contain-decls)
-;; (c-lang-defconst c-recognize-paren-inits)
-;; (c-lang-defconst c-recognize-paren-inexpr-blocks)
-;; (c-lang-defconst c-opt-postfix-decl-spec-key)
-;; (c-lang-defconst c-recognize-colon-labels)
-;; (c-lang-defconst c-label-prefix-re)
-;; (c-lang-defconst c-nonlabel-token-key)
-;; (c-lang-defconst c-nonlabel-token-2-key)
-;; (c-lang-defconst c-opt-extra-label-key)
-;; (c-lang-defconst c-opt-friend-key)
-;; (c-lang-defconst c-opt-method-key)
-;; (c-lang-defconst c-type-decl-end-used)
+(c-lang-defconst c-enums-contain-decls
+  php nil)
 
 (c-add-style
  "php"
