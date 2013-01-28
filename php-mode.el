@@ -585,13 +585,6 @@ contains another declaration level that should be considered a class."
 (c-lang-defconst c-lambda-kwds
   php '("function"))
 
-
-(c-lang-defconst c-type-decl-suffix-key
-  php nil)
-
-(c-lang-defconst c-opt-type-suffix-key
-  php nil)
-
 (c-lang-defconst c-recognize-typeless-decls
   php t)
 
