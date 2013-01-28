@@ -407,25 +407,6 @@ example `html-mode'.  Known such libraries are:\n\t"
 (defconst php-tags '("<?php" "?>" "<?" "<?="))
 (defconst php-tags-key (regexp-opt php-tags))
 
-(defconst php-block-stmt-1-kwds '("do" "else" "finally" "try"))
-(defconst php-block-stmt-2-kwds
-  '("for" "if" "while" "switch" "foreach" "elseif"  "catch all"))
-
-(defconst php-block-stmt-1-key
-  (regexp-opt php-block-stmt-1-kwds))
-(defconst php-block-stmt-2-key
-  (regexp-opt php-block-stmt-2-kwds))
-
-(defconst php-class-decl-kwds '("class" "interface" "trait" "namespace"))
-
-(defconst php-class-key
-  (concat
-   "\\(" (regexp-opt php-class-decl-kwds) "\\)\\s-+"
-   (c-lang-const c-symbol-key c)                ;; Class name.
-   "\\(\\s-+extends\\s-+" (c-lang-const c-symbol-key c) "\\)?" ;; Name of superclass.
-   "\\(\\s-+implements\\s-+[^{]+{\\)?")) ;; List of any adopted protocols.
-
-
 (defun php-c-at-vsemi-p (&optional pos)
   "Return t on html lines (including php region border), otherwise nil.
 POS is a position on the line in question.
@@ -469,9 +450,6 @@ This is was done due to the problem reported here:
     (goto-char (cdr langelem))
     (vector (current-column))))
 
-(c-set-offset 'arglist-intro 'php-lineup-arglist-intro)
-(c-set-offset 'arglist-close 'php-lineup-arglist-close)
-
 (defun php-unindent-closure ()
   (let ((syntax (mapcar 'car c-syntactic-context)))
     (if (and (member 'arglist-cont-nonempty syntax)
@@ -488,15 +466,15 @@ This is was done due to the problem reported here:
 
 (defvar php-mode-map
   (let ((map (make-sparse-keymap)))
-    (define-key map [menu-bar php]
-      (cons "PHP" (make-sparse-keymap "PHP")))
+    ;; (define-key map [menu-bar php]
+    ;;   (cons "PHP" (make-sparse-keymap "PHP")))
 
-    (define-key map [menu-bar php complete-function]
-      '("Complete function name" . php-complete-function))
-    (define-key map [menu-bar php browse-manual]
-      '("Browse manual" . php-browse-manual))
-    (define-key map [menu-bar php search-documentation]
-      '("Search documentation" . php-search-documentation))
+    ;; (define-key map [menu-bar php complete-function]
+    ;;   '("Complete function name" . php-complete-function))
+    ;; (define-key map [menu-bar php browse-manual]
+    ;;   '("Browse manual" . php-browse-manual))
+    ;; (define-key map [menu-bar php search-documentation]
+    ;;   '("Search documentation" . php-search-documentation))
 
     (define-key map [(control c) (control f)] 'php-search-documentation)
     (define-key map [(meta tab)] 'php-complete-function)
@@ -517,8 +495,15 @@ This is was done due to the problem reported here:
 (c-lang-defconst c-mode-menu
   php (append '(["Complete function name" php-complete-function t]
                 ["Browse manual" php-browse-manual t]
-                ["Search documentation" php-search-documentation t])
+                ["Search documentation" php-search-documentation t]
+                ["----" t])
               (c-lang-const c-mode-menu)))
+
+(c-lang-defconst c-at-vsemi-p-fn
+  php 'php-c-at-vsemi-p)
+
+(c-lang-defconst c-vsemi-status-unknown-p-fn
+  php 'php-c-vsemi-status-unknown-p)
 
 (c-lang-defconst c-identifier-ops
   php '((prefix "\\")
@@ -530,6 +515,14 @@ This is was done due to the problem reported here:
 
 (c-lang-defconst c-string-escaped-newlines
   php t)
+
+;; PHP doesn't have C-style macros.
+;; HACK: Overwrite this syntax with rules to match <?php and others.
+(c-lang-defconst c-opt-cpp-start
+  php php-tags-key)
+
+(c-lang-defconst c-opt-cpp-prefix
+  php php-tags-key)
 
 (c-lang-defconst c-assignment-operators
   ;; falls back to java, so no need to specify the language
@@ -554,7 +547,7 @@ This is was done due to the problem reported here:
 (c-lang-defconst c-class-decl-kwds
   "Keywords introducing declarations where the following block (if any)
 contains another declaration level that should be considered a class."
-  php '("class" "trait" "interface"))
+  php '("class" "trait" "interface" "namespace"))
 
 (c-lang-defconst c-brace-list-decl-kwds
   php nil)
@@ -612,9 +605,14 @@ contains another declaration level that should be considered a class."
 (c-add-style
  "php"
  '((c-basic-offset . 4)
+   (c-doc-comment-style . javadoc)
    (c-offsets-alist . ((block-open . -)
                        (block-close . 0)
-                       (statement-cont . +)))))
+                       (statement-cont . +)
+                       (topmost-intro-cont . c-lineup-cascaded-calls)
+                       (brace-list-entry . c-lineup-cascaded-calls)
+                       (arglist-intro . php-lineup-arglist-intro)
+                       (arglist-close . php-lineup-arglist-close)))))
 
 (add-to-list 'c-default-style '(php-mode . "php"))
 
@@ -674,41 +672,33 @@ working with Wordpress."
         c-indent-comments-syntactically-p t)
   (c-set-style "wordpress"))
 
+(easy-menu-define php-mode-menu php-mode-map "PHP Mode Commands"
+  (cons "PHP" (c-lang-const c-mode-menu php)))
+
 ;;;###autoload
 (define-derived-mode php-mode c-mode "PHP"
-  "Major mode for editing PHP code.\n\n\\{php-mode-map}"
+  "Major mode for editing PHP code.
 
+\\{php-mode-map}"
 
-  ;; PHP doesn't have C-style macros.
-  ;; HACK: Overwrite this syntax with rules to match <?php and others.
-  (set (make-local-variable 'c-opt-cpp-start) php-tags-key)
-  (set (make-local-variable 'c-opt-cpp-prefix) php-tags-key)
+  (c-initialize-cc-mode t)
+  (c-init-language-vars php-mode)
+  (c-common-init 'php-mode)
+  ;;(easy-menu-add php-mode-menu)
+  ;; (cc-imenu-init cc-imenu-php-generic-expression)
+  ;;(c-update-modeline)
 
-  ;; These settings ensure that chained method calls line up correctly
-  ;; over multiple lines.
-  (c-set-offset 'topmost-intro-cont 'c-lineup-cascaded-calls)
-  (c-set-offset 'brace-list-entry 'c-lineup-cascaded-calls)
-
-  (set (make-local-variable 'c-block-stmt-1-key) php-block-stmt-1-key)
-  (set (make-local-variable 'c-block-stmt-2-key) php-block-stmt-2-key)
-
-  ;; Specify that cc-mode recognize Javadoc comment style
-  (set (make-local-variable 'c-doc-comment-style)
-    '((php-mode . javadoc)))
-
-  (set (make-local-variable 'c-class-key) php-class-key)
-
-  (make-local-variable 'font-lock-defaults)
-  (setq font-lock-defaults
-        '((php-font-lock-keywords-1
-           php-font-lock-keywords-2
-           ;; Comment-out the next line if the font-coloring is too
-           ;; extreme/ugly for you.
-           php-font-lock-keywords-3)
-          nil                ; KEYWORDS-ONLY
-          t                  ; CASE-FOLD
-          (("_" . "w"))      ; SYNTAX-ALIST
-          nil))              ; SYNTAX-BEGIN
+  ;; (setq font-lock-defaults
+  ;;       '((php-font-lock-keywords-1
+  ;;          php-font-lock-keywords-2
+  ;;          ;; Comment-out the next line if the font-coloring is too
+  ;;          ;; extreme/ugly for you.
+  ;;          php-font-lock-keywords-3)
+  ;;         nil                ; KEYWORDS-ONLY
+  ;;         t                  ; CASE-FOLD
+  ;;         (("_" . "w"))      ; SYNTAX-ALIST
+  ;;         nil))
+                                        ; SYNTAX-BEGIN
 
   (modify-syntax-entry ?_    "_" php-mode-syntax-table)
   (modify-syntax-entry ?`    "\"" php-mode-syntax-table)
