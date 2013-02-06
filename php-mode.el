@@ -507,7 +507,7 @@ This is was done due to the problem reported here:
 
 (c-lang-defconst c-identifier-ops
   php '((prefix "\\")
-        (left-assoc "::")
+        (left-assoc "::" "\\")
         (prefix "::")))
 
 (c-lang-defconst c-after-id-concat-ops
