@@ -611,7 +611,8 @@ contains another declaration level that should be considered a class."
 
 (c-add-style
  "pear"
- '((c-basic-offset . 4)
+ '("php"
+   (c-basic-offset . 4)
    (c-offsets-alist . ((block-open . -)
                        (block-close . 0)
                        (statement-cont . +)))))
@@ -626,7 +627,8 @@ code and modules."
 
 (c-add-style
  "drupal"
- '((c-basic-offset . 2)
+ '("php"
+   (c-basic-offset . 2)
    (c-offsets-alist . ((case-label . +)
                        (arglist-close . 0)
                        (arglist-intro . +)
@@ -646,7 +648,8 @@ working with Drupal."
 
 (c-add-style
  "wordpress"
- '((c-basic-offset . 4)
+ '("php"
+   (c-basic-offset . 4)
    (c-offsets-alist . ((arglist-cont . 0)
                        (arglist-intro . +)
                        (case-label . 2)
